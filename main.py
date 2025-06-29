@@ -12,23 +12,22 @@ HEADERS = {
 
 
 # サーバーに送信する検索条件データ
-
 payload = {
     'syumoku': '021',
     'month': '07',
-    'day': '15',    
+    'day': '15',
     'joken': '1',
-    'kyoyo1': '07',   # 時間帯のコード
+    'kyoyo1': '07',
     'kyoyo2': '00',
     'chiiki': '20',
     'vlinefield': '41696', 
-    'tran_div': '',          # 値が空なので空文字列
+    'tran_div': '  ',          
     'system1': '-135090240',
     'system2': '0',
-    'mae_riymd': '',
+    'mae_riymd': '        ',  
     'mae_cnt': '0',
-    'mae_shcd': '',
-    'mae_kyocd': '',
+    'mae_shcd': '    ',        
+    'mae_kyocd': '  ',         
     'page': '0',
     'flg': '0',
     'button': '照会',
@@ -43,9 +42,13 @@ soup = BeautifulSoup(response.text, 'lxml')
 vlinefield_value = soup.find('input', attrs={'name': 'vlinefield'})['value']
 system1_value = soup.find('input', attrs={'name': 'system1'})['value']
 syumokunm_value = soup.find('option', attrs={'value': payload['syumoku']}).text #.textで卓球という文字を取ってくる
-chiikinm_value = soup.find('option', attrs={'value': payload['chiiki']}).text 
-kyoyo1nm_value = soup.find('option', attrs={'value': payload['kyoyo1']}).text 
-# kyoyo2nm_value = soup.find('option', attrs={'value': payload['kyoyo2']}).text 
+select_chiiki = soup.find('select', attrs={'name': 'chiiki'})
+chiikinm_value = select_chiiki.find('option', attrs={'value': payload['chiiki']}).text
+
+select_kyoyo1 = soup.find('select', attrs={'name': 'kyoyo1'})
+kyoyo1nm_value = select_kyoyo1.find('option', attrs={'value': payload['kyoyo1']}).text
+select_kyoyo2 = soup.find('select', attrs={'name': 'kyoyo2'})
+kyoyo2nm_value = select_kyoyo2.find('option', attrs={'value': payload['kyoyo2']}).text 
 
 
 
@@ -55,10 +58,10 @@ payload['system1'] = system1_value
 payload['syumokunm'] = syumokunm_value
 payload['chiikinm'] = chiikinm_value
 payload['kyoyo1nm'] = kyoyo1nm_value
-# payload['kyoyo2'] = kyoyo2nm_value
+payload['kyoyo2nm'] = kyoyo2nm_value
 
-# print("---これから送信するpayloadの中身---")
-# print(payload)
+print("---これから送信するpayloadの中身---")
+print(payload)
 
 response = s.post(
  SEARCH_URL,
@@ -68,8 +71,10 @@ response = s.post(
 response.encoding = 'shift_jis'
 
 # print(response.text)
-soup = BeautifulSoup(response.text, 'lxml')
+# soup = BeautifulSoup(response.text, 'lxml')
 
-result = soup.find('td', attrs={'class' : 'ERRLABEL1'}).text.strip()
+# result = soup.find('td', attrs={'class' : 'ERRLABEL1'}).text.strip()
 
-print(result)
+# print(result)
+
+print(response.text)
