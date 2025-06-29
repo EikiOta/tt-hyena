@@ -60,8 +60,8 @@ payload['chiikinm'] = chiikinm_value
 payload['kyoyo1nm'] = kyoyo1nm_value
 payload['kyoyo2nm'] = kyoyo2nm_value
 
-print("---これから送信するpayloadの中身---")
-print(payload)
+# print("---これから送信するpayloadの中身---")
+# print(payload)
 
 response = s.post(
  SEARCH_URL,
@@ -71,10 +71,12 @@ response = s.post(
 response.encoding = 'shift_jis'
 
 # print(response.text)
-# soup = BeautifulSoup(response.text, 'lxml')
+soup = BeautifulSoup(response.text, 'lxml')
 
-# result = soup.find('td', attrs={'class' : 'ERRLABEL1'}).text.strip()
+table = soup.find('table', attrs={'border' : '1'})
+data_rows = table.find_all('tr') # trだけ取り出す
 
-# print(result)
-
-print(response.text)
+# ループで1つずつ取り出す。
+for row in data_rows:
+    print(row.text.strip())
+# print(response.text)
