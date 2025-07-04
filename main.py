@@ -133,11 +133,53 @@ def parse_time_to_float(hh_mm_str): # '19:30'のような文字列を受け取�
 # 呼び出し
 now_datetime = datetime.datetime.today() # 現在日時取得
 s = requests.Session()
-
 for i in range(6):
+    
     target_date = now_datetime + datetime.timedelta(days=i)
     # 土日(5, 6)をスキップするため、4以下(平日)のみ取ってくる
     if target_date.weekday() <= 4:
         print('★'+target_date.strftime('%m')+'月'+target_date.strftime('%d') + '日の検索結果★')
-        results = search_on_date(s, target_date.strftime('%m'), target_date.strftime('%d'))
-print(results)
+        # その日の空き情報を取得
+        daily_results = search_on_date(s, target_date.strftime('%m'), target_date.strftime('%d'))
+        daily_facility_slots = {} # 日ごとにリセットする
+        for slot in daily_results : # 結果があったときのみ処理
+            facility_name = slot['施設']
+            if facility_name not in daily_facility_slots: 
+                # 初出の場合は新しいキーを作り新しいリストを作成
+                daily_facility_slots[facility_name] = [slot]
+            else:
+                # 既出ならappendで追加する
+                daily_facility_slots[facility_name].append(slot)
+        for facility_name, slots in daily_facility_slots.items(): 
+            slots.sort(key=lambda x: x['開始'])
+            for slot in slots:
+                duration = slot['終了'] - slot['開始']
+                if duration >= 3 and slot['開始'] >= 18:
+                # 発見！
+                    print(f"発見！ {facility_name} {slot['開始']}時から{slot['終了']}時まで ({duration}時間)")
+
+            for i in range(len(slots) - 1):
+                # 今見ている時間枠
+                current_slot = slots[i] 
+                # 次の時間枠
+                next_slot = slots[i+1]
+                
+                
+                # もし、今の時間枠の「終了」と、次の時間枠の「開始」が同じなら...
+                if current_slot['終了'] == next_slot['開始']:
+                    # これは連続している！
+                    
+                    # 合体させた場合の開始時刻と終了時刻を計算
+                    merged_start = current_slot['開始']
+                    merged_end = next_slot['終了']
+                    
+                    # 合体させた時間を計算
+                    duration = merged_end - merged_start
+                    
+                    
+                    # もし、合計時間が3時間以上で、かつ開始が18時以降なら...
+                    if duration >= 3 and merged_start >= 18:
+                        print(f"発見！ {facility_name} {merged_start}時から{merged_end}時まで ({duration}時間)")
+
+
+    # print(daily_facility_slots)
