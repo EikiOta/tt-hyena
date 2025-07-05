@@ -2,6 +2,7 @@
 import requests
 from bs4 import BeautifulSoup
 import datetime
+import json
 def search_on_date(s,month, day): 
     
     SEARCH_URL = "https://www.net.city.nagoya.jp/cgi-bin/sp04002"  # リクエストを送るURL
@@ -133,6 +134,10 @@ def parse_time_to_float(hh_mm_str): # '19:30'のような文字列を受け取�
 # 呼び出し
 now_datetime = datetime.datetime.today() # 現在日時取得
 s = requests.Session()
+final_results = []
+
+
+
 for i in range(6):
     
     target_date = now_datetime + datetime.timedelta(days=i)
@@ -150,6 +155,7 @@ for i in range(6):
             else:
                 # 既出ならappendで追加する
                 daily_facility_slots[facility_name].append(slot)
+        
         for facility_name, slots in daily_facility_slots.items(): 
             slots.sort(key=lambda x: x['開始'])
             for slot in slots:
@@ -157,7 +163,13 @@ for i in range(6):
                 if duration >= 3 and slot['開始'] >= 18:
                 # 発見！
                     print(f"発見！ {facility_name} {slot['開始']}時から{slot['終了']}時まで ({duration}時間)")
-
+                    found_slot = {
+                            "日付": target_date.strftime('%Y-%m-%d'),
+                            "施設": facility_name,
+                            "開始": slot['開始'],
+                            "終了": slot['終了']
+                    }
+                    final_results.append(found_slot)
             for i in range(len(slots) - 1):
                 # 今見ている時間枠
                 current_slot = slots[i] 
@@ -180,6 +192,16 @@ for i in range(6):
                     # もし、合計時間が3時間以上で、かつ開始が18時以降なら...
                     if duration >= 3 and merged_start >= 18:
                         print(f"発見！ {facility_name} {merged_start}時から{merged_end}時まで ({duration}時間)")
+                        found_slot = {
+                            "日付": target_date.strftime('%Y-%m-%d'),
+                            "施設": facility_name,
+                            "開始": merged_start,
+                            "終了": merged_end
+                        }
+                        final_results.append(found_slot)
+with open('results.json', 'w', encoding='utf-8') as f:
+    json.dump(final_results, f, indent=2, ensure_ascii=False)
 
+print("検索が完了し、結果をresults.jsonに保存しました。")
 
     # print(daily_facility_slots)
