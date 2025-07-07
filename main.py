@@ -133,6 +133,12 @@ def parse_time_to_float(hh_mm_str): # '19:30'のような文字列を受け取�
 
 # 呼び出し
 now_datetime = datetime.datetime.today() # 現在日時取得
+# 前回のファイルを読み込む（差分取得のため)
+try: 
+    with open('results.json', 'r', encoding='utf-8') as f:
+        previous_results = json.load(f)
+except FileNotFoundError:
+    previous_results = [] # 初回は空のものを用意
 s = requests.Session()
 final_results = []
 
@@ -199,6 +205,18 @@ for i in range(6):
                             "終了": merged_end
                         }
                         final_results.append(found_slot)
+
+newly_found_slots = [] # 新しく発見されたスロットを入れるリスト
+for current_slot in final_results:
+    if current_slot not in previous_results:
+        newly_found_slots.append(current_slot)
+# 新しく空きがあった場合メッセージ表示
+if newly_found_slots: 
+    print("★新しい空き枠を発見しました★")
+    print(json.dumps(newly_found_slots, indent=2, ensure_ascii=False))
+else:
+    print("新しい空き枠はありませんでした")
+
 with open('results.json', 'w', encoding='utf-8') as f:
     json.dump(final_results, f, indent=2, ensure_ascii=False)
 
